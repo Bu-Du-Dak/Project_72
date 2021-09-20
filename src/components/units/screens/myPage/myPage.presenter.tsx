@@ -16,6 +16,7 @@ import {
 } from './myPage.style';
 import Icon from 'react-native-vector-icons/Ionicons';
 const MyPageUI = (props: any) => {
+  console.log(props.data)
   return (
     <>
       <Container>
@@ -26,10 +27,10 @@ const MyPageUI = (props: any) => {
 
           <UserInfoWrapper>
             <UserInfoLeftWrapper>
-              <UserImage>
-                <Icon size={60} color={'#bdbdbd'} name="person-circle-sharp" />
-              </UserImage>
-              <UserName>유저이름</UserName>
+              {/* <UserImage source={{uri:}}/> */}
+                {/* <Icon size={60} color={'#bdbdbd'} name="person-circle-sharp" /> */}
+              
+              <UserName>{props.data?.fetchUserLoggedIn.name}</UserName>
             </UserInfoLeftWrapper>
             <UserInfoRightWrapper onPress={props.onPressLogout}>
               <UserInfoEdit>로그아웃</UserInfoEdit>

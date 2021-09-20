@@ -18,9 +18,14 @@ export const UserInfoWrapper = styled.View`
   align-items: center;
   justify-content: space-between;
 `;
-export const UserImage = styled.View`
+export const UserImage = styled.ImageBackground`
   justify-content: center;
   align-items: center;
+  margin-right: 20px;
+  width: 60px;
+  height: 60px;
+  /* background-color: gray; */
+  border-radius: 60px;
 `;
 export const UserInfoLeftWrapper = styled.View`
   flex-direction: row;

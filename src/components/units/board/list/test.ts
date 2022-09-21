@@ -1,5 +1,0 @@
-<<<<<<< HEAD
-hhhhhhhhhh
-=======
-qweqweqweq
->>>>>>> master

@@ -1,5 +1,0 @@
-<<<<<<< HEAD
-logo
-=======
-fsdfsdfsdfsdf
->>>>>>> master

@@ -1,46 +1,96 @@
 import * as React from 'react';
-import {View, Text, Button} from 'react-native';
-import {NavigationContainer} from '@react-navigation/native';
-import {createNativeStackNavigator} from '@react-navigation/native-stack';
+import {
+  ApolloClient,
+  ApolloLink,
+  ApolloProvider,
+  InMemoryCache,
+} from '@apollo/client';
+import MainBottomTabNavigationPage from './pages/navigation/MainBottomTabNavigation';
+import {useState, createContext, useEffect} from 'react';
+import StartPageStackNavigationPage from './pages/navigation/StartPageStackNavigation';
+import {createUploadLink} from 'apollo-upload-client';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import LandingPage from './pages/screens/landing';
+import RegistStackNavigationPage from './pages/navigation/RegistStackNavigation';
 
-function HomeScreen({navigation}: any) {
-  return (
-    <View style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}>
-      <Text>Home Screen</Text>
-      <Button
-        title="Go to Details"
-        onPress={() => navigation.navigate('Details')}
-      />
-    </View>
-  );
+export const GlobalContext = createContext({});
+
+interface IUserInfo {
+  _id?: string;
+  email?: string;
+  name?: string;
+  petGender?: string;
+  petKinds?: string;
+  petName?: string;
+  picture?: string;
 }
-
-function DetailsScreen({navigation}: any) {
-  return (
-    <View style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}>
-      <Text>Details Screen</Text>
-      <Button
-        title="Go to Details... again"
-        onPress={() => navigation.push('Details')}
-      />
-    </View>
-  );
-}
-
-const Stack = createNativeStackNavigator();
 
 function App() {
+  const [isLoading, setIsLoading] = useState(true);
+  const [accessToken, setAccessToken] = useState('');
+  const [userInfo, setUserInfo] = useState<IUserInfo>();
+
+  useEffect(() => {
+    const getToken = async () => {
+      try {
+        const getAccessToken = await AsyncStorage.getItem('accessToken');
+        const getUserInfo = await AsyncStorage.getItem('userInfo');
+        if (getAccessToken) {
+          setAccessToken(String(getAccessToken));
+        }
+        if (getUserInfo) {
+          const parsed = JSON.parse(getUserInfo) as IUserInfo;
+          if (parsed) {
+            setUserInfo(parsed);
+          }
+        }
+      } catch (error) {
+        console.log('EffectError', error);
+      }
+    };
+    getToken();
+  }, []);
+
+  const uploadLink = createUploadLink({
+    uri: 'http://34.68.72.16:4000/graphql',
+    headers: {
+      authorization: `Bearer ${accessToken}`,
+      // ${(typeof window !== 'undefined' && localStorage.getItem('accessToken'))||''}
+    },
+    credentials: 'include',
+  });
+  const client = new ApolloClient({
+    link: ApolloLink.from([uploadLink as unknown as ApolloLink]),
+    cache: new InMemoryCache(),
+  });
+  const value = {
+    accessToken: accessToken,
+    setAccessToken: setAccessToken,
+    userInfo: userInfo,
+    setUserInfo: setUserInfo,
+  };
   return (
-    <NavigationContainer>
-      <Stack.Navigator initialRouteName="Home">
-        <Stack.Screen
-          name="Home"
-          component={HomeScreen}
-          options={{title: 'Overview'}}
-        />
-        <Stack.Screen name="Details" component={DetailsScreen} />
-      </Stack.Navigator>
-    </NavigationContainer>
+    <>
+      <GlobalContext.Provider value={value}>
+        <ApolloProvider client={client}>
+          {isLoading && <LandingPage setIsLoading={setIsLoading} />}
+          {!isLoading &&
+            (userInfo ? (
+              <>
+                {userInfo.petName !== null ? (
+                  <MainBottomTabNavigationPage />
+                ) : (
+                  <RegistStackNavigationPage />
+                )}
+              </>
+            ) : (
+              <>
+                <StartPageStackNavigationPage />
+              </>
+            ))}
+        </ApolloProvider>
+      </GlobalContext.Provider>
+    </>
   );
 }
 
